@@ -57,3 +57,32 @@
  * 先算新状态，再覆盖旧状态。
  * ============================================================
  */
+
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+class Solution152 {
+public:
+    int maxProduct(vector<int>& nums) {
+        int n = nums.size();
+        int maxVal = nums[0];
+        int minVal = nums[0];
+        int ans = nums[0];
+
+        for (int i = 1; i < n; i++) {
+            int x = nums[i];
+
+            int newMax = max({ x,maxVal * x,minVal * x });
+            int newMin = min({ x,minVal * x,maxVal * x });
+
+            maxVal = newMax;
+            minVal = newMin;
+
+            ans = max(ans, maxVal);
+        }
+
+        return ans;
+    }
+};
