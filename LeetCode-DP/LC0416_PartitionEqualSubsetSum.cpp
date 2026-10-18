@@ -75,13 +75,126 @@
  * 1. 二维 DP 状态转移的独立推导。
  * 2. 一维 DP 空间优化。
  * 3. 为什么 0-1 背包的一维容量必须倒序遍历。
+ 
+ *
+ * 【一维 DP 状态定义】
+ * dp[j]：使用当前已经处理过的元素，
+ *        是否可以恰好凑出总和 j。
+ *
+ * dp[j] = true  ：可以凑出 j
+ * dp[j] = false ：无法凑出 j
+ *
+ * 【初始化】
+ * vector<bool> dp(target + 1, false);
+ * dp[0] = true;
+ *
+ * 不选择任何元素时，可以凑出总和 0。
+ * 其他总和在尚未处理元素时都无法凑出。
+ *
+ * 【状态转移】
+ * 当前元素为 x，背包容量为 j。
+ *
+ * ① 不选当前元素 x：
+ *    dp[j] 保持原来的状态。
+ *
+ * ② 选择当前元素 x：
+ *    如果之前能够凑出 j-x，
+ *    那么加上当前元素 x，就可以凑出 j。
+ *
+ * 因此：
+ * dp[j] = dp[j] || dp[j-x];
+ *
+ * 其中：
+ * dp[j]   ：不选择当前元素
+ * dp[j-x] ：选择当前元素，检查剩余总和是否可达
+ *
+ * 【为什么必须倒序遍历？】
+ * 二维 DP 的状态转移依赖上一行：
+ *
+ * dp[i][j] = dp[i-1][j] || dp[i-1][j-x]
+ *
+ * 压缩成一维后，需要确保 dp[j-x] 尚未在
+ * 当前元素这一轮被更新。
+ *
+ * 因此容量 j 必须从 target 向 x 倒序遍历。
+ *
+ * 如果正序遍历，dp[j-x] 可能已经使用过当前元素，
+ * 导致同一个元素被重复选择，变成完全背包。
+ *
+ * 【举例】
+ * nums = [2]，target = 4
+ *
+ * 正序遍历：
+ * dp[2] = true
+ * dp[4] = dp[2] = true  // 错误！相当于使用了两次 2
+ *
+ * 倒序遍历：
+ * 先计算 dp[4]，此时 dp[2] 仍为 false。
+ * 再计算 dp[2]，由 dp[0] 得到 true。
+ *
+ * 因此 dp[4] 保持 false，符合每个元素只能使用一次的要求。
+ *
+ * 【与二维 DP 对比】
+ *
+ * 二维：
+ * dp[i][j]：前 i 个元素能否凑出 j
+ * 空间复杂度 O(n * target)
+ *
+ * 一维：
+ * dp[j]：当前已经处理过的元素能否凑出 j
+ * 空间复杂度 O(target)
+ *
+ * 核心优化：用倒序更新保护上一轮状态。
+
+
+ *  j >= x
+ *    当前容量必须能够容纳当前元素。
+ *    同时避免访问负数下标。
+ *
+ * 【易错点】
+ * 1. sum 为奇数时必须提前返回 false。
+ * 2. dp[0] 必须初始化为 true。
+ * 3. 数组长度必须为 target+1，才能访问 dp[target]。
+ * 4. 一维 0-1 背包的容量必须倒序遍历。
+ * 5. 状态转移使用逻辑或 ||，不能只保留选择当前元素的方案。
+ * 6. 最终返回 dp[target]，不需要额外寻找 best。
+ 
  */
 
 #include <vector>
 
 using namespace std;
 
-class Solution416 {
+class Solution1D {
+public:
+    bool canPartition(vector<int>& nums) {
+        int n = nums.size();
+        int sum = 0;
+
+        for (int x : nums) {
+            sum += x;
+        }
+
+        if (sum % 2 != 0) {
+            return false;
+        }
+
+        int target = sum / 2;
+
+        vector<bool> dp(target + 1, false);
+        dp[0] = true;
+
+        for (int x : nums) {
+            for (int j = target; j >= x; j--) {
+                dp[j] = dp[j] || dp[j - x];
+            }
+        }
+
+        return dp[target];
+    }
+};
+
+class Solution416_2D {
 public:
     bool canPartition(vector<int>& nums) {
         int n = nums.size();
@@ -123,3 +236,6 @@ public:
         return dp[n][target];
     }
 };
+
+
+
