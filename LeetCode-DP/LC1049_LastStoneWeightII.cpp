@@ -66,9 +66,44 @@
 
 #include "LeetCodeCommon.h"
 
+using namespace std;
+
+class Solution1049_optimize {
+public:
+    int lastStoneWeightII(vector<int>& stones) {
+        int sum = 0;
+
+        for (int x : stones) {
+            sum += x;
+        }
+
+        int target = sum / 2;
+
+        vector<bool> dp(target + 1, false);
+        dp[0] = true;
+
+        for (int x : stones) {
+            for (int j = target; j >= x; j--) {
+                dp[j] = dp[j] || dp[j - x];
+            }
+        }
+
+        int best = 0;
+
+        for (int j = target; j >= 0; j--) {
+            if (dp[j] == true) {
+                best = j;
+                break;
+            }
+        }
+
+        return sum - best * 2;
+    }
+};
+
 class Solution1049 {
 public:
-    int lastStoneWeightII(std::vector<int>& stones) {
+    int lastStoneWeightII(vector<int>& stones) {
         int n = stones.size();
         int sum = 0;
 
@@ -78,8 +113,8 @@ public:
 
         int target = sum / 2;
 
-        std::vector<std::vector<bool>> dp(
-            n + 1, std::vector<bool>(target + 1, false)
+        vector<vector<bool>> dp(
+            n + 1, vector<bool>(target + 1, false)
         );
 
         for (int i = 0; i <= n; i++) {
